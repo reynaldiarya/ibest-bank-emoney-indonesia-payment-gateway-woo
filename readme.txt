@@ -3,8 +3,8 @@ Contributors: reynaldiarya
 Plugin Name: RAPay - Bank dan e-Money Indonesia
 Tags: woocommerce, bank indonesia, woocommerce payment, indonesian banks, checkout, payment, payment method indonesia, BCA, BNI, Mandiri, BRI, Jenius, bank, bank transfer, payment gateway
 Requires at least: 4.1
-Tested up to: 6.0.0
-Stable tag: 2.7.0
+Tested up to: 6.0.2
+Stable tag: 3.0.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -38,6 +38,8 @@ Available Banks
 * GoPay
 * Dana
 * LinkAja
+* ShopeePay
+* QRIS
 
 == Installation ==
 1. Upload the .zip file with the WordPress plugin manager and activate the Plugin
@@ -46,6 +48,15 @@ Available Banks
 4. Configure the plugin methods as you wish
 
 == Changelog ==
+= 3.0.2 - October 16, 2022 =
+* Add Setting and Donate Button
+
+= 3.0.1 - October 16, 2022 =
+* Fixed Bug
+
+= 3.0.0 - October 16, 2022 =
+* Add Pembayaran QRIS
+
 = 2.7.0 - May 23, 2021 =
 * Add Pembayaran Allo Bank
 

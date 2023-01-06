@@ -1,6 +1,6 @@
 <?php
 // Prevent direct access
-if ( ! defined( 'ABSPATH' ) ) { 
+if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
@@ -8,19 +8,26 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Plugin Name: 			RAPay - Bank dan e-Money Indonesia
  * Plugin URI: 				https://wordpress.org/plugins/toko-ibest-bank-indonesia-for-woocommerce
  * Description: 			The WooCommerce Bank and e-Money Indonesia Payment Gateway plugin consists of several collections of banks and e-Money in Indonesia for WooCommerce payments.
- * Version: 				2.7.0
+ * Version: 				3.0.2
  * Author: 					Reynaldi Arya
  * Author URI: 				https://reynaldiab.com
  * Requires at least: 		4.1
- * Tested up to: 			6.0.0
+ * Tested up to: 			6.0.2
  * WC requires at least: 	3.0.0
- * WC tested up to: 		6.5.1
+ * WC tested up to: 		7.0.0
  * License: 				GNU General Public License v3.0
  * License URI: 			http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 add_action( 'plugins_loaded', 'beipgw_init', 0 );
 add_filter ( 'woocommerce_payment_gateways', 'add_beipgw_gateway' );
+add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'beipgw_plugin_action_links' );
+
+function beipgw_plugin_action_links( $actions ) {
+   $actions[] = '<a href="'. esc_url( get_admin_url(null, 'admin.php?page=wc-settings&tab=checkout') ) .'">Settings</a>';
+   $actions[] = '<a href="https://trakteer.id/reynaldiarya/tip" target="_blank" style="color:#3db634;">Donate</a>';
+   return $actions;
+};
 
 function beipgw_init() {
 
@@ -57,7 +64,8 @@ function beipgw_init() {
 	require_once dirname( __FILE__ ) . '/e-money/class-wc-gateway-gopay.php';
 	require_once dirname( __FILE__ ) . '/e-money/class-wc-gateway-dana.php';
 	require_once dirname( __FILE__ ) . '/e-money/class-wc-gateway-linkaja.php';
-
+	require_once dirname( __FILE__ ) . '/e-money/class-wc-gateway-shopeepay.php';
+	require_once dirname( __FILE__ ) . '/e-money/class-wc-gateway-qris.php';
 }
 
 function add_beipgw_gateway( $methods ) {
@@ -83,10 +91,12 @@ function add_beipgw_gateway( $methods ) {
 	$methods[] = 'WC_Gateway_Seabank';
 	$methods[] = 'WC_Gateway_Allo_Bank';
 	$methods[] = 'WC_Gateway_GoPay';
-	$methods[] = 'WC_Gateway_OVO';	
+	$methods[] = 'WC_Gateway_OVO';
 	$methods[] = 'WC_Gateway_Dana';
 	$methods[] = 'WC_Gateway_LinkAja';
-	
+	$methods[] = 'WC_Gateway_ShopeePay';
+	$methods[] = 'WC_Gateway_QRIS';
+
 	return $methods;
 }
 
@@ -96,9 +106,9 @@ function add_beipgw_gateway( $methods ) {
 
 add_filter( 'woocommerce_get_sections_advanced', 'pcpgw_add_section' );
 function pcpgw_add_section( $sections ) {
-	
+
 	$sections['puc'] = __( 'Kode Pembayaran', 'pcpgw' );
-	return $sections;	
+	return $sections;
 }
 
 /**
@@ -107,7 +117,7 @@ function pcpgw_add_section( $sections ) {
 
 add_filter( 'woocommerce_get_settings_advanced', 'puc_all_settings', 10, 2 );
 function puc_all_settings( $settings, $current_section ) {
-	
+
 	/**
 	 * Check the current section is what we want
 	 **/
@@ -138,25 +148,25 @@ function puc_all_settings( $settings, $current_section ) {
 			'id'       		=> 'woocommerce_puc_title',
 			'placeholder'   => 'Kode Pembayaran',
 		);
-		
+
 		$settings_puc[] = array(
 			'name'          => __( 'Angka Minimal', 'pcpgw' ),
 			'type'	        => 'number',
 			'desc'          => __( 'Jumlah minimal penambahan kode pembayaran', 'pcpgw' ),
 			'id'            => 'woocommerce_puc_min',
 			'default'       => '1',
-		);    
+		);
 		$settings_puc[] = array(
 			'name'          => __( 'Angka Maksimal', 'pcpgw' ),
 			'type'	        => 'number',
 			'desc'          => __( 'Jumlah maximal penambahan kode pembayaran', 'pcpgw' ),
 			'id'            => 'woocommerce_puc_max',
-			'default'       => '999',  
-		); 
-		
+			'default'       => '999',
+		);
+
 		$settings_puc[] = array( 'type' => 'sectionend', 'id' => 'puc' );
 		return $settings_puc;
-		
+
 	/**
 	 * If not, return the standard settings
 	 **/
@@ -167,19 +177,19 @@ function puc_all_settings( $settings, $current_section ) {
 
 /**
  * Register Payment Code Function
- * 
+ *
  * To easily identify customers' payments
  *
  * @return void
  */
-if ( 'yes' == get_option( 'woocommerce_puc_enabled' ) ) {	
+if ( 'yes' == get_option( 'woocommerce_puc_enabled' ) ) {
 	add_action( 'woocommerce_cart_calculate_fees', 'add_puc' );
 	function add_puc(){
 		global $woocommerce;
 
-$enable = 1; 
-$min = get_option('woocommerce_puc_min') ;     
-$max = get_option('woocommerce_puc_max');    
+$enable = 1;
+$min = get_option('woocommerce_puc_min') ;
+$max = get_option('woocommerce_puc_max');
 $title = '';
     	if(get_option( 'woocommerce_puc_title' )){
         	$title = (get_option( 'woocommerce_puc_title' ));
